@@ -14,6 +14,7 @@ import pandas as pd  # type: ignore
 import pyarrow as pa  # type: ignore
 
 from awswrangler import _data_types, _utils, catalog, exceptions, s3, sts
+from awswrangler._config import config
 
 _logger: logging.Logger = logging.getLogger(__name__)
 
@@ -80,13 +81,13 @@ def create_athena_bucket(boto3_session: Optional[boto3.Session] = None) -> str:
 
 
 def start_query_execution(
-    sql: str,
-    database: Optional[str] = None,
-    s3_output: Optional[str] = None,
-    workgroup: Optional[str] = None,
-    encryption: Optional[str] = None,
-    kms_key: Optional[str] = None,
-    boto3_session: Optional[boto3.Session] = None,
+        sql: str,
+        database: Optional[str] = None,
+        s3_output: Optional[str] = None,
+        workgroup: Optional[str] = None,
+        encryption: Optional[str] = None,
+        kms_key: Optional[str] = None,
+        boto3_session: Optional[boto3.Session] = None,
 ) -> str:
     """Start a SQL Query against AWS Athena.
 
@@ -138,14 +139,14 @@ def start_query_execution(
 
 
 def _start_query_execution(
-    sql: str,
-    wg_config: Dict[str, Union[Optional[bool], Optional[str]]],
-    database: Optional[str] = None,
-    s3_output: Optional[str] = None,
-    workgroup: Optional[str] = None,
-    encryption: Optional[str] = None,
-    kms_key: Optional[str] = None,
-    boto3_session: Optional[boto3.Session] = None,
+        sql: str,
+        wg_config: Dict[str, Union[Optional[bool], Optional[str]]],
+        database: Optional[str] = None,
+        s3_output: Optional[str] = None,
+        workgroup: Optional[str] = None,
+        encryption: Optional[str] = None,
+        kms_key: Optional[str] = None,
+        boto3_session: Optional[boto3.Session] = None,
 ) -> str:
     args: Dict[str, Any] = {"QueryString": sql}
     session: boto3.Session = _utils.ensure_session(session=boto3_session)
@@ -182,7 +183,7 @@ def _start_query_execution(
 
 
 def _get_s3_output(
-    s3_output: Optional[str], wg_config: Dict[str, Union[bool, Optional[str]]], boto3_session: boto3.Session
+        s3_output: Optional[str], wg_config: Dict[str, Union[bool, Optional[str]]], boto3_session: boto3.Session
 ) -> str:
     if s3_output is None:
         _s3_output: Optional[str] = wg_config["s3_output"]  # type: ignore
@@ -234,13 +235,13 @@ def wait_query(query_execution_id: str, boto3_session: Optional[boto3.Session] =
 
 
 def repair_table(
-    table: str,
-    database: Optional[str] = None,
-    s3_output: Optional[str] = None,
-    workgroup: Optional[str] = None,
-    encryption: Optional[str] = None,
-    kms_key: Optional[str] = None,
-    boto3_session: Optional[boto3.Session] = None,
+        table: str,
+        database: Optional[str] = None,
+        s3_output: Optional[str] = None,
+        workgroup: Optional[str] = None,
+        encryption: Optional[str] = None,
+        kms_key: Optional[str] = None,
+        boto3_session: Optional[boto3.Session] = None,
 ) -> str:
     """Run the Hive's metastore consistency check: 'MSCK REPAIR TABLE table;'.
 
@@ -309,7 +310,7 @@ def _extract_ctas_manifest_paths(path: str, boto3_session: Optional[boto3.Sessio
 
 
 def _get_query_metadata(
-    query_execution_id: str, categories: List[str] = None, boto3_session: Optional[boto3.Session] = None
+        query_execution_id: str, categories: List[str] = None, boto3_session: Optional[boto3.Session] = None
 ) -> Tuple[Dict[str, str], List[str], List[str], Dict[str, Any], List[str]]:
     """Get query metadata."""
     cols_types: Dict[str, str] = get_query_columns_types(
@@ -357,7 +358,7 @@ def _get_query_metadata(
 
 
 def _fix_csv_types_generator(
-    dfs: Iterator[pd.DataFrame], parse_dates: List[str], binaries: List[str]
+        dfs: Iterator[pd.DataFrame], parse_dates: List[str], binaries: List[str]
 ) -> Iterator[pd.DataFrame]:
     """Apply data types cast to a Pandas DataFrames Generator."""
     for df in dfs:
@@ -375,21 +376,21 @@ def _fix_csv_types(df: pd.DataFrame, parse_dates: List[str], binaries: List[str]
 
 
 def read_sql_query(  # pylint: disable=too-many-branches,too-many-locals,too-many-return-statements,too-many-statements
-    sql: str,
-    database: str,
-    ctas_approach: bool = True,
-    categories: Optional[List[str]] = None,
-    chunksize: Optional[Union[int, bool]] = None,
-    s3_output: Optional[str] = None,
-    workgroup: Optional[str] = None,
-    encryption: Optional[str] = None,
-    kms_key: Optional[str] = None,
-    keep_files: bool = True,
-    ctas_temp_table_name: Optional[str] = None,
-    use_threads: bool = True,
-    boto3_session: Optional[boto3.Session] = None,
-    max_cache_seconds: int = 0,
-    max_cache_query_inspections: int = 50,
+        sql: str,
+        database: str,
+        ctas_approach: bool = True,
+        categories: Optional[List[str]] = None,
+        chunksize: Optional[Union[int, bool]] = None,
+        s3_output: Optional[str] = None,
+        workgroup: Optional[str] = None,
+        encryption: Optional[str] = None,
+        kms_key: Optional[str] = None,
+        keep_files: bool = True,
+        ctas_temp_table_name: Optional[str] = None,
+        use_threads: bool = True,
+        boto3_session: Optional[boto3.Session] = None,
+        max_cache_seconds: Optional[int] = None,
+        max_cache_query_inspections: int = 50,
 ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
     """Execute any SQL query on AWS Athena and return the results as a Pandas DataFrame.
 
@@ -473,9 +474,9 @@ def read_sql_query(  # pylint: disable=too-many-branches,too-many-locals,too-man
         If enabled os.cpu_count() will be used as the max number of threads.
     boto3_session : boto3.Session(), optional
         Boto3 Session. The default boto3 session will be used if boto3_session receive None.
-    max_cache_seconds : int
+    max_cache_seconds : int, optional
         Wrangler can look up in Athena's history if this query has been run before.
-        If so, and its completion time is less than `max_cache_seconds` before now, wrangler
+        If so, and its completion time is less than default `max_cache_seconds` and global cache=True, wrangler
         skips query execution and just returns the same results as last time.
         If cached results are valid, wrangler ignores the `ctas_approach`, `s3_output`, `encryption`, `kms_key`,
         `keep_files` and `ctas_temp_table_name` params.
@@ -498,33 +499,37 @@ def read_sql_query(  # pylint: disable=too-many-branches,too-many-locals,too-man
     """
     session: boto3.Session = _utils.ensure_session(session=boto3_session)
 
-    # check for cached results
-    cache_info: Dict[str, Any] = _check_for_cached_results(
-        sql=sql,
-        session=session,
-        workgroup=workgroup,
-        max_cache_seconds=max_cache_seconds,
-        max_cache_query_inspections=max_cache_query_inspections,
-    )
+    # check for cached results if cache is enabled
+    if config.cache:
+        if max_cache_seconds is None:
+            max_cache_seconds = config.max_cache_seconds
 
-    if cache_info["has_valid_cache"] is True:
-        _logger.debug("Valid cache found. Retrieving...")
-        cache_result: Union[pd.DataFrame, Iterator[pd.DataFrame], None] = None
-        try:
-            cache_result = _resolve_query_with_cache(
-                cache_info=cache_info,
-                categories=categories,
-                chunksize=chunksize,
-                use_threads=use_threads,
-                session=session,
-            )
-        # pylint: disable=broad-except
-        except Exception as e:  # pragma: no cover
-            _logger.error(e)
-            # if there is anything wrong with the cache, just fallback to the usual path
-        if cache_result is not None:
-            return cache_result
-        _logger.debug("Corrupt cache. Continuing to execute query...")  # pragma: no cover
+        cache_info: Dict[str, Any] = _check_for_cached_results(
+            sql=sql,
+            session=session,
+            workgroup=workgroup,
+            max_cache_seconds=max_cache_seconds,
+            max_cache_query_inspections=max_cache_query_inspections,
+        )
+
+        if cache_info["has_valid_cache"] is True:
+            _logger.debug("Valid cache found. Retrieving...")
+            cache_result: Union[pd.DataFrame, Iterator[pd.DataFrame], None] = None
+            try:
+                cache_result = _resolve_query_with_cache(
+                    cache_info=cache_info,
+                    categories=categories,
+                    chunksize=chunksize,
+                    use_threads=use_threads,
+                    session=session,
+                )
+            # pylint: disable=broad-except
+            except Exception as e:  # pragma: no cover
+                _logger.error(e)
+                # if there is anything wrong with the cache, just fallback to the usual path
+            if cache_result is not None:
+                return cache_result
+            _logger.debug("Corrupt cache. Continuing to execute query...")  # pragma: no cover
 
     return _resolve_query_without_cache(
         sql=sql,
@@ -544,20 +549,20 @@ def read_sql_query(  # pylint: disable=too-many-branches,too-many-locals,too-man
 
 
 def _resolve_query_without_cache(
-    # pylint: disable=too-many-branches,too-many-locals,too-many-return-statements,too-many-statements
-    sql: str,
-    database: str,
-    ctas_approach: bool,
-    categories: Optional[List[str]],
-    chunksize: Optional[Union[int, bool]],
-    s3_output: Optional[str],
-    workgroup: Optional[str],
-    encryption: Optional[str],
-    kms_key: Optional[str],
-    keep_files: bool,
-    ctas_temp_table_name: Optional[str],
-    use_threads: bool,
-    session: Optional[boto3.Session],
+        # pylint: disable=too-many-branches,too-many-locals,too-many-return-statements,too-many-statements
+        sql: str,
+        database: str,
+        ctas_approach: bool,
+        categories: Optional[List[str]],
+        chunksize: Optional[Union[int, bool]],
+        s3_output: Optional[str],
+        workgroup: Optional[str],
+        encryption: Optional[str],
+        kms_key: Optional[str],
+        keep_files: bool,
+        ctas_temp_table_name: Optional[str],
+        use_threads: bool,
+        session: Optional[boto3.Session],
 ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
     """
     Execute any query in Athena and returns results as Dataframe, back to `read_sql_query`.
@@ -680,11 +685,11 @@ def _resolve_query_without_cache(
 
 
 def _resolve_query_with_cache(  # pylint: disable=too-many-return-statements
-    cache_info,
-    categories: Optional[List[str]],
-    chunksize: Optional[Union[int, bool]],
-    use_threads: bool,
-    session: Optional[boto3.Session],
+        cache_info,
+        categories: Optional[List[str]],
+        chunksize: Optional[Union[int, bool]],
+        use_threads: bool,
+        session: Optional[boto3.Session],
 ):
     """Fetch cached data and return it as a pandas Dataframe (or list of Dataframes)."""
     if cache_info["data_type"] == "parquet":
@@ -742,7 +747,7 @@ def _resolve_query_with_cache(  # pylint: disable=too-many-return-statements
 
 
 def _delete_after_iterate(
-    dfs: Iterator[pd.DataFrame], paths: List[str], use_threads: bool, boto3_session: boto3.Session
+        dfs: Iterator[pd.DataFrame], paths: List[str], use_threads: bool, boto3_session: boto3.Session
 ) -> Iterator[pd.DataFrame]:
     for df in dfs:
         yield df
@@ -802,7 +807,7 @@ def get_work_group(workgroup: str, boto3_session: Optional[boto3.Session] = None
 
 
 def _get_workgroup_config(
-    session: boto3.Session, workgroup: Optional[str] = None
+        session: boto3.Session, workgroup: Optional[str] = None
 ) -> Dict[str, Union[bool, Optional[str]]]:
     if workgroup is not None:
         res: Dict[str, Any] = get_work_group(workgroup=workgroup, boto3_session=session)
@@ -825,21 +830,21 @@ def _get_workgroup_config(
 
 
 def read_sql_table(
-    table: str,
-    database: str,
-    ctas_approach: bool = True,
-    categories: List[str] = None,
-    chunksize: Optional[Union[int, bool]] = None,
-    s3_output: Optional[str] = None,
-    workgroup: Optional[str] = None,
-    encryption: Optional[str] = None,
-    kms_key: Optional[str] = None,
-    keep_files: bool = True,
-    ctas_temp_table_name: Optional[str] = None,
-    use_threads: bool = True,
-    boto3_session: Optional[boto3.Session] = None,
-    max_cache_seconds: int = 0,
-    max_cache_query_inspections: int = 50,
+        table: str,
+        database: str,
+        ctas_approach: bool = True,
+        categories: List[str] = None,
+        chunksize: Optional[Union[int, bool]] = None,
+        s3_output: Optional[str] = None,
+        workgroup: Optional[str] = None,
+        encryption: Optional[str] = None,
+        kms_key: Optional[str] = None,
+        keep_files: bool = True,
+        ctas_temp_table_name: Optional[str] = None,
+        use_threads: bool = True,
+        boto3_session: Optional[boto3.Session] = None,
+        max_cache_seconds: Optional[int] = None,
+        max_cache_query_inspections: int = 50,
 ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
     """Extract the full table AWS Athena and return the results as a Pandas DataFrame.
 
@@ -923,7 +928,7 @@ def read_sql_table(
         If enabled os.cpu_count() will be used as the max number of threads.
     boto3_session : boto3.Session(), optional
         Boto3 Session. The default boto3 session will be used if boto3_session receive None.
-    max_cache_seconds: int
+    max_cache_seconds: int, optional
         Wrangler can look up in Athena's history if this table has been read before.
         If so, and its completion time is less than `max_cache_seconds` before now, wrangler
         skips query execution and just returns the same results as last time.
@@ -946,6 +951,8 @@ def read_sql_table(
     >>> df = wr.athena.read_sql_table(table='...', database='...')
 
     """
+    if max_cache_seconds is None:
+        max_cache_seconds = config.max_cache_seconds
     table = catalog.sanitize_table_name(table=table)
     return read_sql_query(
         sql=f'SELECT * FROM "{table}"',
@@ -974,7 +981,7 @@ def _prepare_query_string_for_comparison(query_string: str) -> str:
 
 
 def _get_last_query_executions(
-    boto3_session: Optional[boto3.Session] = None, workgroup: Optional[str] = None
+        boto3_session: Optional[boto3.Session] = None, workgroup: Optional[str] = None
 ) -> Iterator[List[Dict[str, Any]]]:
     """Return an iterator of `query_execution_info`s run by the workgroup in Athena."""
     client_athena: boto3.client = _utils.client(service_name="athena", session=boto3_session)
@@ -1016,7 +1023,8 @@ def _parse_select_query_from_possible_ctas(possible_ctas: str) -> Optional[str]:
 
 
 def _check_for_cached_results(
-    sql: str, session: boto3.Session, workgroup: Optional[str], max_cache_seconds: int, max_cache_query_inspections: int
+        sql: str, session: boto3.Session, workgroup: Optional[str], max_cache_seconds: int,
+        max_cache_query_inspections: int
 ) -> Dict[str, Any]:
     """
     Check whether `sql` has been run before, within the `max_cache_seconds` window, by the `workgroup`.
@@ -1024,7 +1032,7 @@ def _check_for_cached_results(
     If so, returns a dict with Athena's `query_execution_info` and the data format.
     """
     num_executions_inspected: int = 0
-    if max_cache_seconds > 0:  # pylint: disable=too-many-nested-blocks
+    if config.cache and max_cache_seconds > 0:  # pylint: disable=too-many-nested-blocks
         current_timestamp = datetime.datetime.now(datetime.timezone.utc)
         print(current_timestamp)
         for query_executions in _get_last_query_executions(boto3_session=session, workgroup=workgroup):
